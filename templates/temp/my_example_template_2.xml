@@ -31,8 +31,8 @@ author: Cristiano Fugazza (fugazza.c@irea.cnr.it)
       <user/>
     ]]></edimlPreamble>
       <xsltChain>
-         <xslt>file:///home/cristiano/Dropbox/work@CNR/RITMARE/rdfdata/metadata/liftboy/transform_example_template_2.xsl</xslt>
-         <xslt>file:///home/cristiano/Dropbox/work@CNR/RITMARE/rdfdata/metadata/liftboy/identity_plus_comment.xsl</xslt>
+         <xslt>file:///home/cristiano/devel/liftboy-python/stylesheets/transform_example_template_2.xsl</xslt>
+         <xslt>file:///home/cristiano/devel/liftboy-python/stylesheets/identity_plus_comment.xsl</xslt>
       </xsltChain>
       <!-- note: this query works for all SPARQL 1.1-compliant endpoints -->
       <!-- <codelistQuery><![CDATA[        

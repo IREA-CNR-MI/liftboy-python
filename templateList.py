@@ -1,1 +1,0 @@
-{"http://www.isotc211.org/2005/gmd": "./example_template_2.xml"}

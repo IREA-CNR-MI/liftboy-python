@@ -1,0 +1,22 @@
+        <!doctype html>
+        <html>
+            <head>
+                <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
+                <script>
+                    var uID = Math.floor((Math.random()*100)+1);
+                    function doSubmit() {
+                        document.forms.liftboy_input.submit();
+                    }
+                </script>
+                <title>Test liftboy-python interface</title>
+            </head>
+            <body>
+                <form method="POST" enctype="multipart/form-data" id="liftboy_input" name="liftboy_input">
+                    Metadata:<br/>
+                    <input type="file" id="metadata" name="metadata" accept="text/xml, application/xml"><br/>
+                    Template: (optional)<br/>
+                    <input type="file" id="template" name="template" accept="text/xml, application/xml"><br/>
+                    <input type="submit" onClick="doSubmit()"><br>
+                </form>
+            </body>
+        </html>

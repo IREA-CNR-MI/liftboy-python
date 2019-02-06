@@ -10,7 +10,9 @@ import re
 import requests
 import json
 import sys
-from flask import Flask
+#from redis import Redis
+#import rq
+#from rq import get_current_job
 
 inputFile = None
 input = None
@@ -19,9 +21,20 @@ template = None
 nsm = None
 xmlns = None
 logFile = None
+# whether the element requires lift
+liftNeeded = False
+# a dictionary containing, before lift, the value of the item (key) and, after the lift, the URIs that were returned
+liftableItems = {}
+# string and index for the "_XritX" stuff initialized here
+idTail = ""
+tailIndex = 0
+#job = None
+elementList = None
+documentRoot = None
+
 
 # collect the input data
-def collect_input():
+def collect_input(metadata_file,template_file):
     global inputFile
     global input
     global templateFile
@@ -30,9 +43,10 @@ def collect_input():
     global xmlns
     global logFile
     # the metadata file is the first argument in the script call
-    inputFile = sys.argv[1]
+    #inputFile = sys.argv[1]
+    inputFile = metadata_file
     # parse the metadata file
-    input = etree.parse(inputFile)
+    input = etree.parse('input/'+inputFile)
     # get the namespaces in the input file
     root = input.getroot()
     nsm = root.nsmap
@@ -44,25 +58,27 @@ def collect_input():
     else:
         # provide a dummy schema location withe no associations
         schemaLoc = "foo"
-    # load dictionary containing template associations to schema locations
-    templateList = eval(open("templateList.py").read())
-    # if the file contains an association for schemaLoc
-    if schemaLoc in templateList.keys():
-        # get the template file name
-        templateFile = templateList.get(schemaLoc)
+    if template_file == '':
+        # load dictionary containing template associations to schema locations
+        templateList = eval(open("app/templateList.py").read())
+        # if the file contains an association for schemaLoc
+        if schemaLoc in templateList.keys():
+            # get the template file name
+            templateFile = templateList.get(schemaLoc)
     else:
         # the template file is the second argument in the script call
-        templateFile = sys.argv[2]
+        templateFile = template_file
     # parse the template file
-    template = etree.parse(templateFile)
+    template = etree.parse('templates/'+templateFile)
     # one-item list containing the XML namespace
     xmlns = {'xml': 'http://www.w3.org/XML/1998/namespace'}
     # create log file
-    logFile = open('log/'+inputFile[inputFile.find('/'):inputFile.rfind('.')]+'.log', 'w')
-    logFile.write("start processing file "+inputFile+'\r')
+    logFile = open('log/' + inputFile[:inputFile.rfind('.')] + '.log', 'w')
+    logFile.write("start processing file "+inputFile + '\r\r')
 
     # debug: show the namespaces associated with the input file
     # print(nsm)
+
 
 # make input path a full path
 def make_path_full(root, path):
@@ -76,6 +92,7 @@ def make_path_full(root, path):
     else:
         thePath = path
     return thePath
+
 
 # make input path a relative path
 def make_path_relative(root, path):
@@ -91,6 +108,7 @@ def make_path_relative(root, path):
         thePath = "." + thePath
     return thePath
 
+
 # make path simple (i.e., remove node patterns enclosed in square brackets)
 def make_path_simple(path):
     outString = path
@@ -102,6 +120,7 @@ def make_path_simple(path):
     #print("returning string " + outString)
 
     return outString
+
 
 # turn a list of paths into a list of full paths and return
 # a list of lists containing the individual steps in the paths
@@ -126,6 +145,7 @@ def get_path_array(list, root):
         allPaths.append(splitPath)
     return allPaths
 
+
 # return the list of full paths defined by an item list
 def get_plain_paths_array(list, root):
     allPaths = []
@@ -135,6 +155,7 @@ def get_plain_paths_array(list, root):
         thePath = make_path_full(root, path)
         allPaths.append(thePath)
     return allPaths
+
 
 # return tha longest sub-path that is contained in all paths in a list
 def compute_max_common_path(paths):
@@ -158,6 +179,7 @@ def compute_max_common_path(paths):
             result = result + '/' + steps[stepInd]
             stepInd += 1
     return result
+
 
 # create the XML subtree corresponding to a given item definition (itemList) on the basis of the content of the input data (node)
 def create_items_block(node, itemList, maxCommonPath):
@@ -220,6 +242,7 @@ def create_items_block(node, itemList, maxCommonPath):
         # print(etree.tostring(item, pretty_print=True))
 
     return items
+
 
 # composes the dictionary for a given template item
 def create_item_descr(item, itemId, path, id):
@@ -285,7 +308,9 @@ def create_item_descr(item, itemId, path, id):
                 "defaultValue": defaultValue, "hasValue": hasValue}
     return listItem
 
-# execute semantic lift on a node sub-tree (nodes) corresponding to of a specific item (item) of a specific element (element)
+
+# execute semantic lift on a node sub-tree (nodes) corresponding to of a specific item (item) of a specific
+# element (element)
 def do_semantic_lift(nodes, element, items):
     endpoint = ""
     query = ""
@@ -293,8 +318,7 @@ def do_semantic_lift(nodes, element, items):
 
     # debug: print input tree
     #print(etree.tostring(nodes, pretty_print=True))
-    #print("BEGIN semantic lift for items " + str(items) + " of element " + element)
-    logFile.write("BEGIN semantic lift for items " + str(items) + " of element " + element + '\r\r')
+    print("BEGIN semantic lift for items " + str(items) + " of element " + element)
 
     uriDict = {}
     for item in items.keys():
@@ -331,13 +355,11 @@ def do_semantic_lift(nodes, element, items):
     #if len(uriDict.keys()) > 1:
     #    for elem in uriDict:
     #        uriDict.get(elem).append("http://foo.bar")
-
-    # debug: print input tree
-    logFile.write("END   semantic lift for items " + str(uriDict) + " of element " + element + '\r\r')
-    #print("END   semantic lift for items " + str(uriDict) + " of element " + element)
+    print("END   semantic lift for items " + str(uriDict) + " of element " + element)
     #print(etree.tostring(elems, pretty_print=True))
 
     create_lifted_nodes(nodes, uriDict)
+
 
 # update nodes with results from lift
 def create_lifted_nodes(nodes, items):
@@ -345,8 +367,7 @@ def create_lifted_nodes(nodes, items):
     global tailIndex
 
     # debug: output call parameters
-    logFile.write("call to function create_lifted_nodes for items " + str(items) + '\r\r')
-    #print("call to function create_lifted_nodes for items " + str(items))
+    print("call to function create_lifted_nodes for items " + str(items))
 
     # the variable indicating whether to execute recursion
     execRecursion = False
@@ -402,6 +423,7 @@ def create_lifted_nodes(nodes, items):
         tailIndex += 1
         documentRoot.append(copyOfNodes)
 
+
 # composes the dictionary containing the elements in the template
 def create_target_list():
     # extract the elements in the template
@@ -439,6 +461,7 @@ def create_target_list():
         outList[id] = listElem
     return outList
 
+
 # create the output file
 def create_output_tree():
     root = etree.Element("elements")
@@ -470,14 +493,6 @@ def create_output_tree():
 
     return root
 
-# variables that need be global
-# whether the element requires lift
-liftNeeded = False
-# a dictionary containing, before the lift, the value of the item (key) and, after the lift, the URIs that were returned
-liftableItems = {}
-# string and index for the "_XritX" stuff initialized here
-idTail = ""
-tailIndex = 0
 
 # look for the template elements in the input file
 def parse_input_file():
@@ -493,6 +508,12 @@ def parse_input_file():
         tailIndex = 0
         global liftNeeded
         global liftableItems
+        global job
+
+        # update job metatadata
+        #job.meta['progress'] = (100 / len(elementList) * elementList.keys().index(elt)+1
+        #job.save_meta()
+
         liftNeeded = False
         liftableItems = {}
         elementContent = elementList.get(elt)
@@ -500,7 +521,7 @@ def parse_input_file():
         root = elementContent.get("root")
 
         # debug
-        logFile.write("looking in the input file for element " + elt + " with root " + root + '\r\r')
+        logFile.write('\r' + "looking in the input file for element " + elt + " with root " + root + '\r')
         #print("looking in the input file for element " + elt + " with root " + root)
         #print("element " + elt + ": " + str(elementContent))
 
@@ -575,7 +596,7 @@ def parse_input_file():
                     # debug
                     #print("element copy: ")
                     #print(etree.tostring(copyOfElem, pretty_print=True))
-                    logFile.write("lifting element for items " + str(liftableItems) + '\r\r')
+                    logFile.write("lifting element for items " + str(liftableItems) + '\r')
                     #print("lifting element for items " + str(liftableItems))
 
                     do_semantic_lift(elem, elt, liftableItems)
@@ -594,31 +615,39 @@ def parse_input_file():
         # debug
         print("")
 
-print("__ call to collect input __")
-collect_input()
-print("")
-print("__ call to create_target_list __")
-elementList = create_target_list()
+def do_lift(metadata_file, template_file):
+    #global job
+    global elementList
+    global documentRoot
 
-# debug: elements in the template
-for elt in elementList.keys():
-    logFile.write(elt+": "+str(elementList[elt]) + '\r\r')
-    #print(elt+": "+str(elementList[elt]))
+    #job = get_current_job()
+    collect_input(metadata_file, template_file)
+    elementList = create_target_list()
 
-print("")
+    # debug: elements in the template
+    for elt in elementList.keys():
+        logFile.write(elt + ": " + str(elementList[elt]) + '\r')
+        # print(elt+": "+str(elementList[elt]))
 
-print("__ call to create_output_tree __")
-documentRoot = create_output_tree()
-print("")
+    documentRoot = create_output_tree()
+    parse_input_file()
+    outputTree = etree.ElementTree(documentRoot)
+    outputTree.write("output/" + inputFile[:inputFile.rfind(".")] + ".ediml")
+    stylesheets = template.xpath("//xsltChain/xslt/text()", namespaces=xmlns)
+    inputTree = outputTree
+    for stylesheet in stylesheets:
+        xslt = etree.parse(stylesheet)
+        transform = etree.XSLT(xslt)
+        inputTree = transform(inputTree)
+    inputTree.write("output/" + inputFile[:inputFile.rfind(".")] + "_transformed.ediml")
+    logFile.close()
 
-parse_input_file()
-outputTree = etree.ElementTree(documentRoot)
-outputTree.write("output"+inputFile[inputFile.find("input")+5:inputFile.rfind(".")]+".ediml")
-stylesheets = template.xpath("//xsltChain/xslt/text()", namespaces=xmlns)
-inputTree = outputTree
-for stylesheet in stylesheets:
-    xslt = etree.parse(stylesheet)
-    transform = etree.XSLT(xslt)
-    inputTree = transform(inputTree)
-inputTree.write("output"+inputFile[inputFile.find("input")+5:inputFile.rfind(".")]+"_transformed.ediml")
-logFile.close()
+    # http://edi.get-it.it/
+
+# call do_lift() to run debug
+inputFile = sys.argv[1]
+if len(sys.argv) > 2:
+    templateFile = sys.argv[2]
+else:
+    templateFile = ''
+do_lift(inputFile,templateFile)
