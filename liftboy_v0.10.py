@@ -468,7 +468,8 @@ def create_output_tree():
     elem = etree.SubElement(root, "version")
     elem.text = "3.0"
     elem = etree.SubElement(root, "template")
-    elem.text = templateFile[templateFile.rfind("/")+1:templateFile.rfind(".")]
+    #elem.text = templateFile[templateFile.rfind("/")+1:templateFile.rfind(".")]
+    elem.text = templateFile[templateFile.rfind("/") + 1:templateFile.rfind("_liftboy")] + '_edi'
 
     # populate tags <fileId> and <fileUri> issuing a REST request to the EDI server defined in the template
     # get URL of EDI server from the template
