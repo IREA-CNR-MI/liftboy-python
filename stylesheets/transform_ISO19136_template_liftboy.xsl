@@ -21,6 +21,18 @@
     <!-- <xsl:comment>PERFORMING XSLT TRANSFORMATION</xsl:comment> -->
 </xsl:template>
 
+    <xsl:template match="baseDocument">
+
+        <baseDocument>
+            
+            <xsl:text disable-output-escaping="yes">&lt;![CDATA[</xsl:text>
+            <xsl:value-of select="text()" disable-output-escaping="yes" />
+            <xsl:text disable-output-escaping="yes">]]&gt;</xsl:text>
+            
+        </baseDocument>
+
+    </xsl:template>
+
 <xsl:template match="defaultValue" />
 <xsl:template match="hasValue" />
 
