@@ -10,6 +10,7 @@ import re
 import requests
 import json
 import sys
+import copy
 #from redis import Redis
 #import rq
 #from rq import get_current_job
@@ -464,12 +465,28 @@ def create_target_list():
 
 # create the output file
 def create_output_tree():
+    # instruct parser to keep CDATA
+    parser = etree.XMLParser(strip_cdata=False)
+
     root = etree.Element("elements")
     elem = etree.SubElement(root, "version")
-    elem.text = "3.0"
+    elem.text = templateFile[templateFile.rfind("_v")+2:templateFile.rfind(".xml")]
     elem = etree.SubElement(root, "template")
-    #elem.text = templateFile[templateFile.rfind("/")+1:templateFile.rfind(".")]
     elem.text = templateFile[templateFile.rfind("/") + 1:templateFile.rfind("_liftboy")] + '_edi'
+
+    # copy elements in tag "edimlPreamble"
+    for e in template.xpath("//edimlPreamble/*", namespaces=xmlns):
+        root.append(e)
+
+    #base = etree.XML('<root><![CDATA[test]]></root>', parser)
+    #base.text = template.xpath("//baseDocument", namespaces=xmlns)[0].text
+    #root.append(base)
+
+    #root.append(copy.deepcopy(template.xpath("//baseDocument", namespaces=xmlns)[0]))
+
+    elem = etree.SubElement(root, "baseDocument")
+    elem.text = template.xpath("//baseDocument", namespaces=xmlns)[0].text
+    #elem.text = etree.CDATA(elem.text)
 
     # populate tags <fileId> and <fileUri> issuing a REST request to the EDI server defined in the template
     # get URL of EDI server from the template
@@ -480,7 +497,8 @@ def create_output_tree():
     # complete URL for the REST request
     requestUrl = requestUrl + "/rest/ediml/requestId"
     # execute the request
-    restResponse = requests.get(requestUrl, verify=True)
+    #restResponse = requests.get(requestUrl, verify=True)
+    restResponse = requests.get(requestUrl, verify=False)
     if (restResponse.ok):
         # Loading the response data into a dict variable
         jData = json.loads(restResponse.content)
@@ -641,6 +659,33 @@ def do_lift(metadata_file, template_file):
         transform = etree.XSLT(xslt)
         inputTree = transform(inputTree)
     inputTree.write("output/" + inputFile[:inputFile.rfind(".")] + "_transformed.ediml")
+
+    '''
+    # post metadata to EDI server
+    # get URL of EDI server from the template
+    requestUrl = template.xpath("//metadataEndpoint/text()", namespaces=xmlns)[0]
+    # remove trailing slash if needed
+    if requestUrl.endswith('/'):
+        requestUrl = requestUrl[:-1]
+    # complete URL for the REST request
+    requestUrl = requestUrl + "/rest/metadata"
+    headers = {'Content-Type': 'application/xml'}
+    #r = requests.post(requestUrl, data=etree.tostring(inputTree, pretty_print=True), headers=headers)
+    #logFile.write("metadata post response code: " + str(r.status_code))
+    
+    try:
+        #session = requests.Session()
+        #session.verify = False
+        #session.post(requestUrl, data=etree.tostring(inputTree, pretty_print=False), headers=headers)
+        #logFile.write("metadata post response code: " + str(session.status_code))
+        r = requests.post(requestUrl, data=etree.tostring(inputTree, pretty_print=False), headers=headers, verify=False)
+        #r = requests.post(requestUrl, data=etree.tostring(inputTree, pretty_print=False), headers=headers, verify = "/etc/ssl/certs/ca-certificates.crt")
+        logFile.write("metadata post response code: " + str(r.status_code))
+    except requests.exceptions.RequestException as e:
+        logFile.write("metadata post response code: " + str(r.status_code))
+        logFile.write("exceptions: " + e)
+    '''
+
     logFile.close()
 
     # http://edi.get-it.it/
