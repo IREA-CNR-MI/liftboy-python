@@ -10,9 +10,6 @@ import re
 import requests
 import json
 import sys
-#from redis import Redis
-#import rq
-#from rq import get_current_job
 
 inputFile = None
 input = None
@@ -28,7 +25,6 @@ liftableItems = {}
 # string and index for the "_XritX" stuff initialized here
 idTail = ""
 tailIndex = 0
-#job = None
 elementList = None
 documentRoot = None
 
@@ -42,8 +38,6 @@ def collect_input(metadata_file,template_file):
     global nsm
     global xmlns
     global logFile
-    # the metadata file is the first argument in the script call
-    #inputFile = sys.argv[1]
     inputFile = metadata_file
     # parse the metadata file
     input = etree.parse('input/'+inputFile)
@@ -74,7 +68,7 @@ def collect_input(metadata_file,template_file):
     xmlns = {'xml': 'http://www.w3.org/XML/1998/namespace'}
     # create log file
     logFile = open('log/' + inputFile[:inputFile.rfind('.')] + '.log', 'w')
-    logFile.write("start processing file "+inputFile + '\r\r')
+    logFile.write("start processing file "+inputFile + '\r')
 
     # debug: show the namespaces associated with the input file
     # print(nsm)
@@ -220,7 +214,8 @@ def create_items_block(node, itemList, maxCommonPath):
                     theValue = str(node.xpath(make_path_relative(maxCommonPath, itemDetails.get("path")) + '/text()', namespaces=nsm)[0])
 
         # debug:
-        print("looking for value at index " + str(tailIndex) + " in " + itemDetails.get("path") + " found " + str(theValue))
+        #print("looking for value at index " + str(tailIndex) + " in " + itemDetails.get("path") + " found " + str(theValue))
+        logFile.write("looking for value at index " + str(tailIndex) + " in " + itemDetails.get("path") + " found " + str(theValue) + '\r')
 
         childElem = etree.SubElement(item, "value")
         childElem.text = theValue
@@ -316,9 +311,9 @@ def do_semantic_lift(nodes, element, items):
     query = ""
     outputTree = etree.Element("outputTree")
 
-    # debug: print input tree
-    #print(etree.tostring(nodes, pretty_print=True))
-    print("BEGIN semantic lift for items " + str(items) + " of element " + element)
+    # debug:
+    #print("BEGIN semantic lift for items " + str(items) + " of element " + element)
+    logFile.write("BEGIN semantic lift for items " + str(items) + " of element " + element + '\r')
 
     uriDict = {}
     for item in items.keys():
@@ -355,8 +350,8 @@ def do_semantic_lift(nodes, element, items):
     #if len(uriDict.keys()) > 1:
     #    for elem in uriDict:
     #        uriDict.get(elem).append("http://foo.bar")
-    print("END   semantic lift for items " + str(uriDict) + " of element " + element)
-    #print(etree.tostring(elems, pretty_print=True))
+    #print("END   semantic lift for items " + str(uriDict) + " of element " + element)
+    logFile.write("END   semantic lift for items " + str(uriDict) + " of element " + element + '\r')
 
     create_lifted_nodes(nodes, uriDict)
 
@@ -367,7 +362,8 @@ def create_lifted_nodes(nodes, items):
     global tailIndex
 
     # debug: output call parameters
-    print("call to function create_lifted_nodes for items " + str(items))
+    #print("call to function create_lifted_nodes for items " + str(items))
+    logFile.write("call to function create_lifted_nodes for items " + str(items) + '\r')
 
     # the variable indicating whether to execute recursion
     execRecursion = False
@@ -466,10 +462,16 @@ def create_target_list():
 def create_output_tree():
     root = etree.Element("elements")
     elem = etree.SubElement(root, "version")
-    elem.text = "3.0"
+    elem.text = templateFile[templateFile.rfind("_v")+2:templateFile.rfind(".xml")]
     elem = etree.SubElement(root, "template")
-    #elem.text = templateFile[templateFile.rfind("/")+1:templateFile.rfind(".")]
     elem.text = templateFile[templateFile.rfind("/") + 1:templateFile.rfind("_liftboy")] + '_edi'
+
+    # copy elements in tag "edimlPreamble"
+    for e in template.xpath("//edimlPreamble/*", namespaces=xmlns):
+        root.append(e)
+
+    elem = etree.SubElement(root, "baseDocument")
+    elem.text = template.xpath("//baseDocument", namespaces=xmlns)[0].text
 
     # populate tags <fileId> and <fileUri> issuing a REST request to the EDI server defined in the template
     # get URL of EDI server from the template
@@ -480,7 +482,8 @@ def create_output_tree():
     # complete URL for the REST request
     requestUrl = requestUrl + "/rest/ediml/requestId"
     # execute the request
-    restResponse = requests.get(requestUrl, verify=True)
+    #restResponse = requests.get(requestUrl, verify=True)
+    restResponse = requests.get(requestUrl, verify=False)
     if (restResponse.ok):
         # Loading the response data into a dict variable
         jData = json.loads(restResponse.content)
@@ -499,7 +502,7 @@ def create_output_tree():
 def parse_input_file():
 
     # debug
-    print("__ call to parse_input_file __")
+    #print("__ call to parse_input_file __")
 
     # for each element in the template
     for elt in elementList.keys():
@@ -509,11 +512,6 @@ def parse_input_file():
         tailIndex = 0
         global liftNeeded
         global liftableItems
-        global job
-
-        # update job metatadata
-        #job.meta['progress'] = (100 / len(elementList) * elementList.keys().index(elt)+1
-        #job.save_meta()
 
         liftNeeded = False
         liftableItems = {}
@@ -522,9 +520,9 @@ def parse_input_file():
         root = elementContent.get("root")
 
         # debug
-        logFile.write('\r' + "looking in the input file for element " + elt + " with root " + root + '\r')
         #print("looking in the input file for element " + elt + " with root " + root)
         #print("element " + elt + ": " + str(elementContent))
+        logFile.write('\r' + "looking in the input file for element " + elt + " with root " + root + '\r')
 
         # create an array with all the paths defined by the element
         allPaths = get_path_array(itemList, root)
@@ -533,9 +531,11 @@ def parse_input_file():
 
         # debug:
         #print("processed item list for element " + elt + ": maxCommonPath is " + maxCommonPath)
+
         # maxCommonPath now contains the path to be searched for in the input to single out all instances of the element
         # start searching the input document for the element in hand
-        print("start processing the input document for element " + elt + ": " + str(elementContent))
+        #print("start processing the input document for element " + elt + ": " + str(elementContent))
+        logFile.write("start processing the input document for element " + elt + ": " + str(elementContent) + '\r')
 
         # get the list of all (full) paths defined by the element
         plain_paths = get_plain_paths_array(itemList, root)
@@ -567,7 +567,8 @@ def parse_input_file():
         nodeList = input.xpath(targetPattern, namespaces=nsm)
 
         # debug: print number of element instances found
-        print("found " + str(len(nodeList)) + " instances")
+        #print("found " + str(len(nodeList)) + " instances")
+        logFile.write("found " + str(len(nodeList)) + " instances" + '\r')
 
         if len(nodeList) > 0:
             for node in nodeList:
@@ -595,10 +596,8 @@ def parse_input_file():
                 if liftNeeded:
 
                     # debug
-                    #print("element copy: ")
-                    #print(etree.tostring(copyOfElem, pretty_print=True))
-                    logFile.write("lifting element for items " + str(liftableItems) + '\r')
                     #print("lifting element for items " + str(liftableItems))
+                    logFile.write("lifting element for items " + str(liftableItems) + '\r')
 
                     do_semantic_lift(elem, elt, liftableItems)
                 else:
@@ -611,24 +610,22 @@ def parse_input_file():
                     tailIndex += 1
 
                 # debug: print content of variable "elem"
-                print(etree.tostring(elem, pretty_print=True))
+                #print(etree.tostring(elem, pretty_print=True))
+                logFile.write(str(etree.tostring(elem, pretty_print=True)) + "\r")
 
         # debug
-        print("")
+        #print("")
 
 def do_lift(metadata_file, template_file):
-    #global job
     global elementList
     global documentRoot
 
-    #job = get_current_job()
     collect_input(metadata_file, template_file)
     elementList = create_target_list()
 
     # debug: elements in the template
-    for elt in elementList.keys():
-        logFile.write(elt + ": " + str(elementList[elt]) + '\r')
-        # print(elt+": "+str(elementList[elt]))
+    #for elt in elementList.keys():
+    #    logFile.write(elt + ": " + str(elementList[elt]) + '\r')
 
     documentRoot = create_output_tree()
     parse_input_file()
@@ -641,12 +638,39 @@ def do_lift(metadata_file, template_file):
         transform = etree.XSLT(xslt)
         inputTree = transform(inputTree)
     inputTree.write("output/" + inputFile[:inputFile.rfind(".")] + "_transformed.ediml")
+
+    '''
+    # post metadata to EDI server
+    # get URL of EDI server from the template
+    requestUrl = template.xpath("//metadataEndpoint/text()", namespaces=xmlns)[0]
+    # remove trailing slash if needed
+    if requestUrl.endswith('/'):
+        requestUrl = requestUrl[:-1]
+    # complete URL for the REST request
+    requestUrl = requestUrl + "/rest/metadata"
+    headers = {'Content-Type': 'application/xml'}
+    #r = requests.post(requestUrl, data=etree.tostring(inputTree, pretty_print=True), headers=headers)
+    #logFile.write("metadata post response code: " + str(r.status_code))
+    
+    try:
+        #session = requests.Session()
+        #session.verify = False
+        #session.post(requestUrl, data=etree.tostring(inputTree, pretty_print=False), headers=headers)
+        #logFile.write("metadata post response code: " + str(session.status_code))
+        r = requests.post(requestUrl, data=etree.tostring(inputTree, pretty_print=False), headers=headers, verify=False)
+        #r = requests.post(requestUrl, data=etree.tostring(inputTree, pretty_print=False), headers=headers, verify = "/etc/ssl/certs/ca-certificates.crt")
+        logFile.write("metadata post response code: " + str(r.status_code))
+    except requests.exceptions.RequestException as e:
+        logFile.write("metadata post response code: " + str(r.status_code))
+        logFile.write("exceptions: " + e)
+    '''
+
     logFile.close()
 
 # call do_lift() to run debug
-#inputFile = sys.argv[1]
-#if sys.argv[2]:
-#    templateFile = sys.argv[2]
-#else:
-#    templateFile = ''
-#do_lift(inputFile,templateFile)
+inputFile = sys.argv[1]
+if len(sys.argv) > 2:
+    templateFile = sys.argv[2]
+else:
+    templateFile = ''
+do_lift(inputFile,templateFile)
