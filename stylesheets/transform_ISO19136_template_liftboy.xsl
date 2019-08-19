@@ -1,45 +1,112 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+    this stylesheet is specific to ISO 19136 metadata and shall be applied right after the default one
+    Author: Cristiano Fugazza (fugazza.c@irea.cnr.it)
+-->
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
-<xsl:output method="xml" version="1.0" encoding="UTF-8" indent="yes" omit-xml-declaration="no" />
+    <xsl:output method="html" encoding="UTF-8" indent="yes" omit-xml-declaration="no"/>
+    <!--<xsl:output method="xml" encoding="UTF-8" indent="yes" omit-xml-declaration="no"/>-->
 
-<!-- identity template without namespace nodes
-<xsl:template match="*">
-    <xsl:element name="{local-name()}">
-        <xsl:apply-templates select="@*|node()"/>
-    </xsl:element>
-</xsl:template>
-
-<xsl:template match="@*|text()|comment()|processing-instruction()">
-    <xsl:copy>
-        <xsl:apply-templates select="@*|node()"/>
-    </xsl:copy>
-</xsl:template> -->
+    <xsl:strip-space elements="*" />
     
-<xsl:template match="/">
-    <xsl:apply-templates select="@*|node()"/>
-    <!-- <xsl:comment>PERFORMING XSLT TRANSFORMATION</xsl:comment> -->
-</xsl:template>
+    <!-- remove keyw_voc_contr instances that do not have a URI associated with them -->
+    <xsl:template match="//element[represents_element = 'keyw_voc_contr' and not(descendant::item[hasIndex = '1']/codeValue/text())]"/>
 
-    <xsl:template match="baseDocument">
+    <!-- transform nodes that were temporarily inserted in dummyNode(s) -->
+    <xsl:template match="dummyNode">
+        <xsl:choose>
+            <!-- keyw_voc_contr -> keyw -->
+            <xsl:when test="contains(element/id/text(), 'keyw_voc_contr')">
+                <xsl:variable name="tail" select="substring-after(element/id/text(), 'keyw_voc_contr')"/>
+                
+                <element>
+                    
+                    <xsl:element name="id">
+                        <xsl:value-of select="concat( 'keyw', $tail)" disable-output-escaping="yes"/>
+                    </xsl:element>
+                    <xsl:element name="root">
+                        <xsl:value-of select="descendant::root/text()" disable-output-escaping="yes"/>
+                    </xsl:element>
+                    
+                    <mandatory>NA</mandatory>
+                    <represents_element>keyw</represents_element>
+                    <items>
+                        <item>
+                            
+                            <xsl:element name="id">
+                                <xsl:value-of select="concat( concat( 'keyw', $tail), '_1' )" disable-output-escaping="yes"/>
+                            </xsl:element>
 
-        <baseDocument>
-            
-            <xsl:text disable-output-escaping="yes">&lt;![CDATA[</xsl:text>
-            <xsl:value-of select="text()" disable-output-escaping="yes" />
-            <xsl:text disable-output-escaping="yes">]]&gt;</xsl:text>
-            
-        </baseDocument>
+                            <elementId>keyw</elementId>
+                            
+                            <xsl:element name="path">
+                                <xsl:value-of select="descendant::path/text()" disable-output-escaping="yes"/>
+                            </xsl:element>
+                            
+                            <datatype>string</datatype>
+                            <fixed>false</fixed>
+                            <useCode/>
+                            <useURN/>
+                            <outIndex/>
+                            
+                            <xsl:element name="value">
+                                <xsl:value-of select="descendant::value/text()" disable-output-escaping="yes"/>
+                            </xsl:element>
+                            <xsl:element name="labelValue">
+                                <xsl:value-of select="descendant::labelValue/text()" disable-output-escaping="yes"/>
+                            </xsl:element>
 
+                            <codeValue/>
+                            <urnValue/>
+                            <languageNeutral/>
+                            <listeningFor />
+                            <isLanguageNeutral/>
+                            <datasource/>
+                            <hasIndex>1</hasIndex>
+                            <field/>
+                            <itemId/>
+                            <show/>
+                            <defaultValue/>
+                            <query/>
+                        </item>
+                    </items>
+                </element>                
+
+            </xsl:when>
+            <!-- all other empty elements -->
+            <xsl:otherwise>
+                <xsl:apply-templates select="descendant::node()"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
-<xsl:template match="defaultValue" />
-<xsl:template match="hasValue" />
-
-<!-- identity template -->
-<xsl:template match="@*|node()">
-    <xsl:copy>
-        <xsl:apply-templates select="@*|node()"/>
-    </xsl:copy>
-</xsl:template>
+    <!-- this should be of no use -->
+    <xsl:template match="@* | node()" mode="rewrite">
+        <xsl:param name="old_id" />
+        <xsl:param name="new_id" />
+        <xsl:choose>
+            <xsl:when test="starts-with(local-name(), 'id')">
+                
+                <id>
+                    
+                    <xsl:value-of select="concat($new_id, substring-after(text(),$old_id))"/>
+                    
+                </id>
+                                
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy>
+                    <xsl:apply-templates select="@* | node()" mode="rewrite"/>
+                </xsl:copy>                
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <!-- identity template -->
+    <xsl:template match="@* | node()">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+        </xsl:copy>
+    </xsl:template>
 </xsl:stylesheet>

@@ -4,9 +4,11 @@
    <gmd:fileIdentifier>
       <gco:CharacterString>05b08cbe-0843-11e4-8d9e-080027e9b98d</gco:CharacterString>
    </gmd:fileIdentifier>
+   <!--
    <gmd:fileIdentifier>
       <gco:CharacterString>pippo</gco:CharacterString>
    </gmd:fileIdentifier>
+   -->
    <gmd:language>
       <gmd:LanguageCode codeList="http://www.loc.gov/standards/iso639-2/" codeListValue="ita">ita</gmd:LanguageCode>
    </gmd:language>
@@ -75,7 +77,7 @@
          <gmd:citation>
             <gmd:CI_Citation>
                <gmd:title>
-                  <gco:CharacterString>Copertura radar - Gargano</gco:CharacterString>
+                  <gco:CharacterString>Copertura radar - Gargano &amp; more</gco:CharacterString>
                </gmd:title>
                <gmd:date>
                   <gmd:CI_Date>
@@ -125,7 +127,7 @@
                <gmd:citedResponsibleParty>
                   <gmd:CI_ResponsibleParty>
                      <gmd:organisationName>
-                        <gco:CharacterString>IREA-CNR</gco:CharacterString>
+                        <gco:CharacterString>ACME Research</gco:CharacterString>
                      </gmd:organisationName>
                      <gmd:contactInfo>
                         <gmd:CI_Contact>
@@ -275,6 +277,15 @@
                </gmd:thesaurusName>
             </gmd:MD_Keywords>
          </gmd:descriptiveKeywords>
+
+         <gmd:descriptiveKeywords>
+            <gmd:MD_Keywords>
+               <gmd:keyword>
+                  <gco:CharacterString>cippalippa 1</gco:CharacterString>
+               </gmd:keyword>
+            </gmd:MD_Keywords>
+         </gmd:descriptiveKeywords>         
+         
          <gmd:descriptiveKeywords>
             <gmd:MD_Keywords>
                <gmd:keyword>
@@ -304,8 +315,16 @@
          <gmd:descriptiveKeywords>
             <gmd:MD_Keywords>
                <gmd:keyword>
+                  <gco:CharacterString>ctd colonna d'acqua</gco:CharacterString>
+               </gmd:keyword>
+            </gmd:MD_Keywords>
+         </gmd:descriptiveKeywords>         
+         <gmd:descriptiveKeywords>
+            <gmd:MD_Keywords>
+               <gmd:keyword>
                   <gco:CharacterString>Mar Adriatico</gco:CharacterString>
                </gmd:keyword>
+               <!--
                <gmd:thesaurusName>
                   <gmd:CI_Citation>
                      <gmd:title>
@@ -323,15 +342,17 @@
                      </gmd:date>
                   </gmd:CI_Citation>
                </gmd:thesaurusName>
+               -->
             </gmd:MD_Keywords>
          </gmd:descriptiveKeywords>
+
          <gmd:descriptiveKeywords>
             <gmd:MD_Keywords>
                <gmd:keyword>
-                  <gco:CharacterString>ctd colonna d'acqua</gco:CharacterString>
+                  <gco:CharacterString>cippalippa 2</gco:CharacterString>
                </gmd:keyword>
             </gmd:MD_Keywords>
-         </gmd:descriptiveKeywords>
+         </gmd:descriptiveKeywords>         
          
          <gmd:resourceConstraints>
             <gmd:MD_Constraints>
@@ -415,7 +436,6 @@
                </gmd:geographicElement>
             </gmd:EX_Extent>
          </gmd:extent>
-
          <gmd:extent>
             <gmd:EX_Extent>
                <gmd:temporalElement>
