@@ -22,7 +22,7 @@
       
     ]]></baseDocument>
       <xsltChain>
-         <xslt>http://sp7.irea.cnr.it/jboss/MDService/rest/RNDT_stylesheet?version=2.00</xslt>
+         <!-- <xslt>http://sp7.irea.cnr.it/jboss/MDService/rest/RNDT_stylesheet?version=2.00</xslt> -->
       </xsltChain>
    </settings>
    <endpointTypes>
@@ -262,7 +262,7 @@
    <group xml:id="info_md">
       <label xml:lang="en">Information on metadata</label>
       <label xml:lang="it">Informazioni sui metadati</label>
-      <element xml:id="id_md" isMandatory="true" isMultiple="false">
+      <element xml:id="id_md" isMandatory="forAll" isMultiple="false">
          <label xml:lang="en">File identifier</label>
          <label xml:lang="it">Identificatore del file</label>
          <help xml:lang="en">The element must contain, as a prefix, the iPA code assigned by 
@@ -270,7 +270,7 @@
          <help xml:lang="it">L'elemento deve contenere, come prefisso, il codice iPA assegnato
         all’Amministrazione nel momento dell’accreditamento all'Indice delle Pubbliche
         Amministrazioni (es. "cnr:112358").</help>
-         <hasRoot>/gmd:MD_Metadata/gmd:fileIdentifier</hasRoot>
+         <hasRoot>/gmd:MD_Metadata</hasRoot>
          <produces>
             <item hasIndex="1"
                   xml:id="id_md_1"
@@ -339,7 +339,7 @@
                   isLanguageNeutral="true"
                   isFixed="true"
                   hasDatatype="ref">
-              <hasPath>/gmd:characterSet/gmd:MD_CharacterSetCode/@codeListValue</hasPath>
+              <hasPath>/gmd:MD_Metadata/gmd:characterSet/gmd:MD_CharacterSetCode/@codeListValue</hasPath>
               <hasValue>/gmd:MD_Metadata/gmd:characterSet/gmd:MD_CharacterSetCode</hasValue>
             </item>
          </produces>
@@ -487,10 +487,11 @@
          <produces>
             <item hasIndex="1"
                   xml:id="nome_std_1"
-                  isFixed="true"
+                  isFixed="false"
                   hasDatatype="string">
                <hasPath>/gmd:MD_Metadata/gmd:metadataStandardName/gco:CharacterString</hasPath>
-               <hasValue>DM - Regole tecniche RNDT</hasValue>
+               <defaultValue>ISO19115</defaultValue>
+               <!-- <hasValue>DM - Regole tecniche RNDT</hasValue> -->
             </item>
          </produces>
       </element>
@@ -501,10 +502,11 @@
          <produces>
             <item hasIndex="1"
                   xml:id="vers_std_1"
-                  isFixed="true"
+                  isFixed="false"
                   hasDatatype="string">
                <hasPath>/gmd:MD_Metadata/gmd:metadataStandardVersion/gco:CharacterString</hasPath>
-               <hasValue>10 novembre 2011</hasValue>
+               <defaultValue>2003/Cor.1:2006</defaultValue>
+               <!-- <hasValue>10 novembre 2011</hasValue> -->
             </item>
          </produces>
       </element>
