@@ -6,13 +6,15 @@ Author: Cristiano Fugazza (fugazza.c@irea.cnr.it)
 from SPARQLWrapper import SPARQLWrapper, JSON
 from lxml import etree
 from copy import deepcopy
-from html import unescape, escape
 import re
 import requests
 import json
 import sys
-#import html
-#import urllib.parse
+
+
+import cgi
+from xml.sax.saxutils import escape, unescape
+
 
 inputFile = None
 input = None
@@ -39,6 +41,7 @@ documentRoot = None
 
 # escape characters in text
 def escape_text(text):
+    # excluded '&' from the list of characters to be escaped
     #escaped_text = text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('/', '&#x2F;').replace('"', '&quot;').replace("'", '&#x27;')
     escaped_text = text.replace('<', '&lt;').replace('>', '&gt;').replace('/', '&#x2F;').replace( '"', '&quot;').replace("'", '&#x27;')
     return escaped_text
@@ -237,8 +240,10 @@ def create_items_block(node, itemList, maxCommonPath):
         # try normalize all strings
         #theValue = escape(re.sub(' +', ' ', theValue.replace('\n', ' ')))
         theValue = escape_text(re.sub(' +', ' ', theValue.replace('\n', ' ')))
+
+        # escape special characters with &#***; entities
         theValue = str(theValue.encode('ascii', 'xmlcharrefreplace'))
-        theValue = theValue[theValue.find("b\'")+2:-1]
+        theValue = theValue[theValue.find("b\'") + 2:-1]
 
         # debug:
         print("looking for value at index " + str(tailIndex) + " in " + itemDetails.get("path") + " found " + str(theValue))
@@ -296,7 +301,8 @@ def create_item_descr(item, itemId, path, id):
     languageNeutral = ""
 
     # DOVE PRENDERE QUESTO VALORE? E' SIGNIFICATIVO? PARE NON LO SIA
-    listeningFor = ""
+    #listeningFor = ""
+    listeningFor = "#" + itemId
 
     if "isLanguageNeutral" in item.attrib:
         isLanguageNeutral = item.attrib["isLanguageNeutral"]
@@ -364,6 +370,14 @@ def do_semantic_lift(nodes, element, items):
                 endpoint = template.xpath("//sparqlEndpoint/text()", namespaces=xmlns)[0]
             #query = template.xpath("//sparql[@xml:id='" + datasource + "']/query/text()", namespaces=xmlns)[0].replace("$search_param", items.get(item))
             query = template.xpath("//sparql[@xml:id='" + datasource + "']/query/text()", namespaces=xmlns)[0].replace("$search_param", re.sub(' +', ' ',items.get(item).replace('\n',' ')))
+
+
+        # escape the query
+        query = str(query.encode('ascii', 'xmlcharrefreplace'))
+
+        # debug:
+        print("query is '" + query + "'")
+        logFile.write("query is '" + query + "'" + '\r')
 
         # debug
         #print("the endpoint is " + endpoint)
@@ -585,7 +599,9 @@ def create_output_tree():
         root.append(e)
 
     elem = etree.SubElement(root, "baseDocument")
-    elem.text = template.xpath("//baseDocument", namespaces=xmlns)[0].text
+    # escape base document
+    elem.text = escape_text( template.xpath("//baseDocument", namespaces=xmlns)[0].text )
+    #elem.text = template.xpath("//baseDocument", namespaces=xmlns)[0].text
 
     # populate tags <fileId> and <fileUri> issuing a REST request to the EDI server defined in the template
     # get URL of EDI server from the template
@@ -703,12 +719,17 @@ def parse_input_file():
                         #childElem.text = elementContent.get(elementKey)
                         childElem.text = escape_text( elementContent.get(elementKey) )
 
-                # UNDERSTAND THE ROLE OF ELEMENT "label"
-                childElem = etree.SubElement(elem, "label")
+                # UNDERSTAND THE ROLE OF ELEMENT "label", if any: not in the output of the current EDI client
+                # childElem = etree.SubElement(elem, "label")
 
                 # "represents_element" is the original id
                 childElem = etree.SubElement(elem, "represents_element")
                 childElem.text = elementContent.get("id")
+
+                # "listeningFor" has an obscure purpose because xath "//listeningFor[text() != concat('#',preceding-sibling::id/text())]" returns no results
+                #childElem = etree.SubElement(elem, "listeningFor")
+                #childElem.text = "#" + elementContent.get("id")
+
                 itemsBlock = create_items_block(node, itemList, maxCommonPath)
                 elem.append(itemsBlock)
 
