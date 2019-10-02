@@ -10,6 +10,16 @@
 
     <xsl:strip-space elements="*" />
     
+    <xsl:template match="baseDocument">
+        
+        <baseDocument>
+            
+            <xsl:value-of select="text()" disable-output-escaping="no"/>
+            
+        </baseDocument>        
+
+    </xsl:template>
+    
     <!-- remove keyw_voc_contr instances that do not have a URI associated with them -->
     <xsl:template match="//element[represents_element = 'keyw_voc_contr' and not(descendant::item[hasIndex = '1']/codeValue/text())]"/>
 
@@ -23,10 +33,12 @@
                 <element>
                     
                     <xsl:element name="id">
-                        <xsl:value-of select="concat( 'keyw', $tail)" disable-output-escaping="yes"/>
+                        <!-- <xsl:value-of select="concat( 'keyw', $tail)" disable-output-escaping="yes"/> -->
+                        <xsl:value-of select="concat( 'keyw', $tail)"/>
                     </xsl:element>
                     <xsl:element name="root">
-                        <xsl:value-of select="descendant::root/text()" disable-output-escaping="yes"/>
+                        <!-- <xsl:value-of select="descendant::root/text()" disable-output-escaping="yes"/> -->
+                        <xsl:value-of select="descendant::root/text()"/>
                     </xsl:element>
                     
                     <mandatory>NA</mandatory>
@@ -35,13 +47,15 @@
                         <item>
                             
                             <xsl:element name="id">
-                                <xsl:value-of select="concat( concat( 'keyw', $tail), '_1' )" disable-output-escaping="yes"/>
+                                <!-- <xsl:value-of select="concat( concat( 'keyw', $tail), '_1' )" disable-output-escaping="yes"/> -->
+                                <xsl:value-of select="concat( concat( 'keyw', $tail), '_1' )"/>
                             </xsl:element>
 
                             <elementId>keyw</elementId>
                             
                             <xsl:element name="path">
-                                <xsl:value-of select="descendant::path/text()" disable-output-escaping="yes"/>
+                                <!-- <xsl:value-of select="descendant::path/text()" disable-output-escaping="yes"/> -->
+                                <xsl:value-of select="descendant::path/text()"/>
                             </xsl:element>
                             
                             <datatype>string</datatype>
@@ -51,16 +65,18 @@
                             <outIndex/>
                             
                             <xsl:element name="value">
-                                <xsl:value-of select="descendant::value/text()" disable-output-escaping="yes"/>
+                                <!-- <xsl:value-of select="descendant::value/text()" disable-output-escaping="yes"/> -->
+                                <xsl:value-of select="descendant::value/text()"/>
                             </xsl:element>
                             <xsl:element name="labelValue">
-                                <xsl:value-of select="descendant::labelValue/text()" disable-output-escaping="yes"/>
+                                <!-- <xsl:value-of select="descendant::labelValue/text()" disable-output-escaping="yes"/> -->
+                                <xsl:value-of select="descendant::labelValue/text()"/>
                             </xsl:element>
 
                             <codeValue/>
                             <urnValue/>
                             <languageNeutral/>
-                            <listeningFor />
+                            <listeningFor>#keyw_1</listeningFor>
                             <isLanguageNeutral/>
                             <datasource/>
                             <hasIndex>1</hasIndex>
@@ -81,7 +97,7 @@
         </xsl:choose>
     </xsl:template>
 
-    <!-- this should be of no use -->
+    <!-- this should be of no use
     <xsl:template match="@* | node()" mode="rewrite">
         <xsl:param name="old_id" />
         <xsl:param name="new_id" />
@@ -101,7 +117,7 @@
                 </xsl:copy>                
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
+    </xsl:template> -->
     
     <!-- identity template -->
     <xsl:template match="@* | node()">
