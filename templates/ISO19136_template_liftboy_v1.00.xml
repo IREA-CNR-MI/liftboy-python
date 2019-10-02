@@ -30,7 +30,7 @@ author: Cristiano Fugazza (fugazza.c@irea.cnr.it)
       <baseDocument><![CDATA[<?xml version="1.0" encoding="UTF-8"?><gmd:MD_Metadata xsi:schemaLocation="http://www.isotc211.org/2005/gmd http://schemas.opengis.net/iso/19139/20060504/gmd/gmd.xsd" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:gco="http://www.isotc211.org/2005/gco" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:xlink="http://www.w3.org/1999/xlink"></gmd:MD_Metadata>]]></baseDocument>
       <!--
       <edimlPreamble>
-         <ediVersion>2.00</ediVersion>
+         <ediVersion>2</ediVersion>
          <starterKit>noSK</starterKit>
          <starterKitUri/>
          <templateDocument/>
@@ -38,11 +38,11 @@ author: Cristiano Fugazza (fugazza.c@irea.cnr.it)
          <xsltChain/>
       </edimlPreamble>
       -->
-      <edimlPreamble><ediVersion>2.00</ediVersion><starterKit>noSK</starterKit><starterKitUri/><templateDocument/><user/><xsltChain/></edimlPreamble>
+      <edimlPreamble><ediVersion>2</ediVersion><starterKit>noSK</starterKit><starterKitUri/><templateDocument/><user/><xsltChain/></edimlPreamble>
       <xsltChain>
-         <xslt>file:///home/cristiano/devel/liftboy-python/stylesheets/default_template_liftboy.xsl</xslt>
-         <xslt>file:///home/cristiano/devel/liftboy-python/stylesheets/transform_ISO19136_template_liftboy.xsl</xslt>
-         <!--<xslt>file:///home/cristiano/devel/liftboy-python/stylesheets/rearrange_ISO19136_template_liftboy.xsl</xslt>-->
+         <xslt>file:///home/cristiano/PycharmProjects/liftboy-python/stylesheets/transform_ISO19136_template_liftboy.xsl</xslt>
+         <xslt>file:///home/cristiano/PycharmProjects/liftboy-python/stylesheets/rearrange_ISO19136_template_liftboy.xsl</xslt>
+         <xslt>file:///home/cristiano/PycharmProjects/liftboy-python/stylesheets/default_template_liftboy.xsl</xslt>
       </xsltChain>
       <!-- note: this query works for all SPARQL 1.1-compliant endpoints -->
       <!-- <codelistQuery><![CDATA[        
@@ -360,7 +360,7 @@ author: Cristiano Fugazza (fugazza.c@irea.cnr.it)
    <group xml:id="info_md">
       <label xml:lang="en">Information on metadata</label>
       <label xml:lang="it">Informazioni sui metadati</label>
-      <element xml:id="id_md" isMandatory="true" isMultiple="false">
+      <element xml:id="id_md" isMandatory="forAll" isMultiple="false">
          <label xml:lang="en">File identifier</label>
          <label xml:lang="it">Identificatore del file</label>
          <help xml:lang="en">The element must contain, as a prefix, the iPA code assigned by the
@@ -1362,7 +1362,7 @@ author: Cristiano Fugazza (fugazza.c@irea.cnr.it)
          <produces>
             <item hasIndex="1" xml:id="ling_1" isLanguageNeutral="true" isFixed="false"
                hasDatatype="codelist" datasource="languages" show="combobox">
-               <hasPath>/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:language/gco:CharacterString</hasPath>
+               <hasPath>/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:language/gmd:LanguageCode</hasPath>
             </item>
             <item hasIndex="2" xml:id="ling_2" isFixed="true" hasDatatype="string">
                <hasPath>/gmd:MD_Metadata/gmd:identificationInfo/gmd:MD_DataIdentification/gmd:language/gmd:LanguageCode/@codeList</hasPath>
