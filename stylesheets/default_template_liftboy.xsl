@@ -5,7 +5,7 @@
 -->
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
-    <xsl:output method="html" encoding="UTF-8" indent="yes" omit-xml-declaration="no"/>
+    <xsl:output method="xml" encoding="UTF-8" indent="yes" omit-xml-declaration="no" />
     
     <xsl:strip-space elements="*" />
 
@@ -13,8 +13,8 @@
         <xsl:apply-templates select="node()"/>
     </xsl:template>
 
-    <!-- check whether baseDocument can be omitted -->
-    <xsl:template match="baseDocument" />
+    <!-- check whether baseDocument can be omitted
+    <xsl:template match="baseDocument" /> -->
         
     <!-- wrap content of element baseDocument in a CDATA section
     <xsl:template match="baseDocument">
@@ -26,7 +26,7 @@
     </xsl:template> -->
     
     <!-- unescape the values of elements path, value, labelValue, codeValue, fileUri, and root that may be double-escaped -->
-    <xsl:template match="path/text()|value/text()|labelValue/text()|codeValue/text()|fileUri/text()|root/text()">
+    <xsl:template match="path/text()|value/text()|labelValue/text()|codeValue/text()|fileUri/text()|root/text()|baseDocument/text()">
         <!-- <xsl:value-of select="." disable-output-escaping="no"/> -->
         <xsl:value-of select="." disable-output-escaping="yes"/>
     </xsl:template>
