@@ -97,13 +97,13 @@
          <query><![CDATA[
         
           PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
-          SELECT ?inst ?home
+          SELECT ?inst
           FROM <http://ritmare.it/rdfdata/lotrx>
           WHERE {
             <$search_param> vcard:org ?o.
             ?o foaf:name ?inst .
             # ?o foaf:homepage ?home .
-            FILTER(LANG(?inst)='it')
+            FILTER(LANG(?inst)='en')
           }
         
       ]]></query>
@@ -112,7 +112,7 @@
          <query><![CDATA[
         
           PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
-          SELECT ?inst ?home
+          SELECT ?inst
           FROM <http://ritmare.it/rdfdata/lotrx>
           WHERE {
             <$search_param> vcard:org ?o.
@@ -127,7 +127,7 @@
          <query><![CDATA[
         
           PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
-          SELECT ?inst ?home
+          SELECT ?inst
           FROM <http://ritmare.it/rdfdata/lotrx>
           WHERE {
             <$search_param> vcard:org ?o.
@@ -144,7 +144,7 @@
          <query><![CDATA[
         
           PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
-          SELECT ?inst ?home
+          SELECT ?inst
           FROM <http://ritmare.it/rdfdata/lotrx>
           WHERE {
             <$search_param> vcard:org ?o.
@@ -336,7 +336,6 @@
             </item>
             <item hasIndex="3"
                   xml:id="chset_md_3"
-                  isLanguageNeutral="true"
                   isFixed="true"
                   hasDatatype="ref">
               <hasPath>/gmd:MD_Metadata/gmd:characterSet/gmd:MD_CharacterSetCode/@codeListValue</hasPath>
@@ -1370,21 +1369,21 @@
          <produces>
             <item hasIndex="1"
                   xml:id="form_distr_1"
-                  isFixed="true"
+                  isFixed="false"
                   hasDatatype="string">
                <label xml:lang="en">Format</label>
                <label xml:lang="it">Nome formato</label>
                <hasPath>/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributionFormat/gmd:MD_Format/gmd:name/gco:CharacterString</hasPath>
-               <hasValue>PNG</hasValue>
+               <!-- <hasValue>PNG</hasValue> -->
             </item>
             <item hasIndex="2"
                   xml:id="form_distr_2"
-                  isFixed="true"
+                  isFixed="false"
                   hasDatatype="string">
                <label xml:lang="en">Version</label>
                <label xml:lang="it">Versione formato</label>
                <hasPath>/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributionFormat/gmd:MD_Format/gmd:version/gco:CharacterString</hasPath>
-               <hasValue>1.0</hasValue>
+               <!-- <hasValue>1.0</hasValue> -->
             </item>
          </produces>
       </element>
