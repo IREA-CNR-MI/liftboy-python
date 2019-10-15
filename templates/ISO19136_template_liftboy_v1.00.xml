@@ -73,7 +73,7 @@ author: Cristiano Fugazza (fugazza.c@irea.cnr.it)
         LIMIT 5
       ]]></codelistQuery> -->
       <!-- note: this query utilizes an extension that works only in Virtuoso -->
-      <codelistQuery><![CDATA[        
+      <codelistQuery><![CDATA[
         PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
         SELECT ?c ?l ?a ?z
@@ -82,7 +82,7 @@ author: Cristiano Fugazza (fugazza.c@irea.cnr.it)
           ?c skos:inScheme <$thesaurus_name> .
           OPTIONAL {
             ?c skos:prefLabel ?l .
-            FILTER( LANG(?l) = "en" ) .
+            FILTER( LANG(?l) = "en" )
           }
           OPTIONAL {
             ?c skos:prefLabel ?a .
@@ -91,16 +91,42 @@ author: Cristiano Fugazza (fugazza.c@irea.cnr.it)
           OPTIONAL {
             ?c skos:prefLabel ?z .
             FILTER( LANG(?z) = "zxx" )
-          }   
-        
+          }
+
           FILTER( bif:lower(STR(?l)) = bif:lower("$search_param")
                || bif:lower(STR(?a)) = bif:lower("$search_param")
                || bif:lower(STR(?z)) = bif:lower("$search_param")
           )
         }
         ORDER BY ASC(?l)
-        LIMIT 5        
+        LIMIT 5
       ]]></codelistQuery>
+      <!--<codelistQuery><![CDATA[
+        SELECT ?c ?l ?a ?z
+        WHERE {
+          ?c <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2004/02/skos/core#Concept> .
+          ?c skos:inScheme <$thesaurus_name> .
+          OPTIONAL {
+            ?c <http://www.w3.org/2004/02/skos/core#prefLabel> ?l .
+            FILTER( LANG(?l) = "en" )
+          }
+          OPTIONAL {
+            ?c <http://www.w3.org/2004/02/skos/core#prefLabel> ?a .
+            FILTER( LANG(?a) = "it" )
+          }
+          OPTIONAL {
+            ?c <http://www.w3.org/2004/02/skos/core#prefLabel> ?z .
+            FILTER( LANG(?z) = "zxx" )
+          }
+
+          FILTER( bif:lower(STR(?l)) = bif:lower("$search_param")
+               || bif:lower(STR(?a)) = bif:lower("$search_param")
+               || bif:lower(STR(?z)) = bif:lower("$search_param")
+          )
+        }
+        ORDER BY ASC(?l)
+        LIMIT 5
+      ]]></codelistQuery> -->
    </settings>
    <endpointTypes>
       <endpointType xml:id="virtuoso" method="GET" queryParameter="query">
@@ -982,8 +1008,6 @@ author: Cristiano Fugazza (fugazza.c@irea.cnr.it)
       </element>
 
       <!-- added element for INSPIRE Themes -->
-      <!-- REMOVED BECAUSE ELEMENT "keyw_voc_contr" CAPTURES ALSO INSPIRE THEMES
-           THE ASSOCIATED STYLESHEET SHALL REMOVE THIS DISCREPANCY               -->
       <element xml:id="tem_ins" isMandatory="false" isMultiple="true">
          <label xml:lang="en">INSPIRE theme</label>
          <label xml:lang="it">Tema di INSPIRE</label>
@@ -1608,16 +1632,57 @@ author: Cristiano Fugazza (fugazza.c@irea.cnr.it)
                <label xml:lang="en">Format</label>
                <label xml:lang="it">Nome formato</label>
                <hasPath>/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributionFormat/gmd:MD_Format/gmd:name/gco:CharacterString</hasPath>
-               <hasValue>PNG</hasValue>
             </item>
             <item hasIndex="2" xml:id="form_distr_2" isFixed="true" hasDatatype="string">
                <label xml:lang="en">Version</label>
                <label xml:lang="it">Versione formato</label>
                <hasPath>/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributionFormat/gmd:MD_Format/gmd:version/gco:CharacterString</hasPath>
-               <hasValue>1.0</hasValue>
             </item>
          </produces>
       </element>
+      <element xml:id="distr" isMandatory="true" isMultiple="true">
+         <hasRoot>/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution</hasRoot>
+         <produces>
+            <item hasIndex="1"
+               xml:id="distr_1"
+               outIndex="2"
+               isFixed="false"
+               hasDatatype="autoCompletion"
+               datasource="person">
+               <label xml:lang="en">Email</label>
+               <label xml:lang="it">Email</label>
+               <hasPath>/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor/gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty/gmd:contactInfo/gmd:CI_Contact/gmd:address/gmd:CI_Address/gmd:electronicMailAddress/gco:CharacterString</hasPath>
+            </item>
+            <item hasIndex="2"
+               xml:id="distr_2"
+               outIndex="1"
+               field="inst"
+               isFixed="false"
+               hasDatatype="select"
+               datasource="personS_4">
+               <label xml:lang="en">Institute</label>
+               <label xml:lang="it">Ente</label>
+               <hasPath>/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor/gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString</hasPath>
+            </item>
+            <item hasIndex="4" xml:id="distr_4" isFixed="true" hasDatatype="URI">
+               <hasPath>/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor/gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode/@codeList</hasPath>
+               <hasValue>http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/gmxCodelists.xml#CI_RoleCode</hasValue>
+            </item>
+            <item hasIndex="5"
+               xml:id="distr_5"
+               isLanguageNeutral="true"
+               isFixed="true"
+               hasDatatype="codelist"
+               datasource="fixedRoles">
+               <hasPath>/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor/gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode</hasPath>
+               <defaultValue>http://inspire.ec.europa.eu/metadata-codelist/ResponsiblePartyRole/resourceProvider</defaultValue>
+            </item>
+            <item hasIndex="6" xml:id="distr_6" isFixed="true" hasDatatype="ref">
+               <hasPath>/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor/gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode/@codeListValue</hasPath>
+               <hasValue>/gmd:MD_Metadata/gmd:distributionInfo/gmd:MD_Distribution/gmd:distributor/gmd:MD_Distributor/gmd:distributorContact/gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode</hasValue>
+            </item>
+         </produces>
+      </element>      
       <element xml:id="ris_online" isMandatory="false" isMultiple="false">
          <label xml:lang="en">Resource locator</label>
          <label xml:lang="it">Indirizzo della risorsa</label>
